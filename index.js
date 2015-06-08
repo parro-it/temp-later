@@ -1,5 +1,5 @@
 'use strict';
 
-export default function temp-later() {
+export default function tempLater() {
 	return 42;
 }
