@@ -1,0 +1,22 @@
+{
+  "name": "temp-later",
+  "description": "es6 asynchronous template strings",
+  "repository": "http://devel.collabra.it/temp-later/funzz.git",
+  "version": "1.0.0",
+  "license": "Copyright 2015 inet2",
+  "main": "dist/index.js",
+  "dependencies": {},
+  "author": "a.parodi@inet2.it",
+  "scripts": {
+    "test": "mocha test/*_test.js test/**/*_test.js --require ./test/init || echo failed",
+    "build": "babel index.js --out-file dist/index.js"
+  },
+  "devDependencies": {
+    "babel": "^5.1.11",
+    "chai": "^2.2.0",
+    "co": "^4.5.2",
+    "co-mocha": "^1.1.0",
+    "mocha": "^2.2.4"
+    
+  }
+}

@@ -1,0 +1,8 @@
+npm install
+npm test
+npm run build
+npm link
+git init
+git remote add origin http://github.com/parro-it/temp-later.git
+git add .
+git commit -m "temp-later project skeleton created with Khaos"
