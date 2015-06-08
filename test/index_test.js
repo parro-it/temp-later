@@ -1,6 +1,8 @@
 'use strict';
 
-import tempLater from '..';
+import tempLater from '../index';
+import concat  from 'concat-stream';
+import {Readable} from 'stream';
 
 describe('tempLater', () => {
 
@@ -8,9 +10,79 @@ describe('tempLater', () => {
         tempLater.should.be.a('function');
     });
 
-    it('support async', function *() {
-        const result = yield Promise.resolve(tempLater());
-        result.should.be.equal(42);
+    it('support sync values', (done) => {
+        const john= 'jude';
+        const data= new Date().getFullYear();
+        const result = tempLater`ciao ${john} come butta ${data}`;
+        
+        result.pipe(concat({encoding:'string'},function(data) {
+            data.should.be.equal('ciao jude come butta 2015');    
+            done();
+        }))
+        
     });
+
+    it('support promise', (done) => {
+        const john= 'jude';
+        const data= new Promise((resolve, reject) => {
+            setTimeout(_ => {
+                resolve(new Date().getFullYear());
+            });
+        });
+        const result = tempLater`ciao ${john} come butta ${data}`;
+        
+        result.pipe(concat({encoding:'string'},function(data) {
+            data.should.be.equal('ciao jude come butta 2015');    
+            done();
+        }))
+        
+    });
+
+    it('support multiple promises', (done) => {
+        const john= new Promise((resolve, reject) => {
+            setTimeout(_ => {
+                resolve('jude');
+            });
+        });;
+        const data= new Promise((resolve, reject) => {
+            setTimeout(_ => {
+                resolve(new Date().getFullYear());
+            });
+        });
+        const result = tempLater`ciao ${john} come butta ${data}`;
+        
+        result.pipe(concat({encoding:'string'},function(data) {
+            data.should.be.equal('ciao jude come butta 2015');    
+            done();
+        }))
+        
+    });
+
+
+    it('support streams', (done) => {
+        const john = new Readable;
+        const jude = 'jude'.split('');
+        console.log(jude.join('-'));
+        john._read = () => {
+            setTimeout( _ => {
+                let value = jude.shift();
+                console.log(jude.join('-'));
+                console.log('mando '+(value || null));
+                john.push(value || null);
+            },10);    
+        }
+        
+        const data= new Date().getFullYear();
+           
+        const result = tempLater`ciao ${john} come butta ${data}`;
+        
+        result.pipe(concat({encoding:'string'},function(data) {
+            data.should.be.equal('ciao jude come butta 2015');    
+            done();
+        }))
+        
+    });
+
+
 
 });
