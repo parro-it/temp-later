@@ -1,15 +1,15 @@
 'use strict';
 
-import temp-later from '..';
+import tempLater from '..';
 
-describe('temp-later', () => {
+describe('tempLater', () => {
 
     it('is defined', () => {
-        temp-later.should.be.a('function');
+        tempLater.should.be.a('function');
     });
 
     it('support async', function *() {
-        const result = yield Promise.resolve(temp-later());
+        const result = yield Promise.resolve(tempLater());
         result.should.be.equal(42);
     });
 
