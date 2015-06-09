@@ -5,7 +5,12 @@
   "version": "1.0.0",
   "license": "Copyright 2015",
   "main": "dist/index.js",
-  "dependencies": {},
+  "dependencies": {
+    "is": "^3.0.1",
+    "stream-from-array": "^0.1.0",
+    "stream-from-promise": "^0.1.0",
+    "stream-stream": "^1.2.6"
+  },
   "author": "andrea@parro.it",
   "scripts": {
     "test": "mocha test/*_test.js test/**/*_test.js --require ./test/init || echo failed",

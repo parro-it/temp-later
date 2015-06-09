@@ -95,6 +95,30 @@ class TempLaterResult extends Readable {
     
 }
 
+import is from 'is';
+import fromArray from 'stream-from-array';
+import ss from 'stream-stream';
+
+const stringer = value => value.toString();
+
+export const handlers = {
+    number: stringer,
+    date: stringer,
+    boolean: stringer,
+    regexp: stringer,
+};
+
 export default function tempLater(strings, ...substs) {
+    let results = ss();
+    let currentValues = [];
+    let handlerKeys = Object.keys();
+
+    substs.forEach( (subst, idx) => {
+        let string = strings[idx];
+
+
+
+    });
+
     return new TempLaterResult(strings, substs);
 }
