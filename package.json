@@ -7,7 +7,6 @@
   "main": "dist/index.js",
   "dependencies": {
     "is": "^3.0.1",
-    "stream-from-array": "^0.1.0",
     "stream-from-promise": "^0.1.0",
     "stream-stream": "^1.2.6"
   },

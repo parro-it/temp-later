@@ -1,0 +1,13 @@
+{
+  "env": {
+    "mocha": true,
+    "node": true
+  },
+  "globals": {
+    "fetch": true
+  },
+  "rules": {
+    "no-underscore-dangle": false
+  }
+
+}

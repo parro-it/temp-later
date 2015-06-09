@@ -1,7 +1,7 @@
 'use strict';
 
 import tempLater from '../index';
-import concat  from 'concat-stream';
+import concat from 'concat-stream';
 import {Readable} from 'stream';
 
 describe('tempLater', () => {
@@ -11,51 +11,51 @@ describe('tempLater', () => {
     });
 
     it('support sync values', (done) => {
-        const john= 'jude';
-        const data= new Date().getFullYear();
+        const john = 'jude';
+        const data = new Date().getFullYear();
         const result = tempLater`ciao ${john} come butta ${data}`;
-        
-        result.pipe(concat({encoding:'string'},function(data) {
-            data.should.be.equal('ciao jude come butta 2015');    
+
+        result.pipe(concat({encoding: 'string'}, dt => {
+            dt.should.be.equal('ciao jude come butta 2015');
             done();
         }));
-        
+
     });
 
     it('support promise', (done) => {
-        const john= 'jude';
-        const data= new Promise((resolve, reject) => {
-            setTimeout(_ => {
-                resolve(new Date().getFullYear());
+        const john = 'jude';
+        const data = new Promise(resolve => {
+            setTimeout( () => {
+                resolve(new Date().getFullYear().toString());
             });
         });
         const result = tempLater`ciao ${john} come butta ${data}`;
-        
-        result.pipe(concat({encoding:'string'},function(data) {
-            data.should.be.equal('ciao jude come butta 2015');    
+
+        result.pipe(concat({encoding: 'string'}, dt => {
+            dt.should.be.equal('ciao jude come butta 2015');
             done();
         }));
-        
+
     });
 
     it('support multiple promises', (done) => {
-        const john= new Promise((resolve, reject) => {
-            setTimeout(_ => {
+        const john = new Promise( resolve => {
+            setTimeout( () => {
                 resolve('jude');
             });
         });
-        const data= new Promise((resolve, reject) => {
-            setTimeout(_ => {
-                resolve(new Date().getFullYear());
+        const data = new Promise( resolve => {
+            setTimeout( () => {
+                resolve(new Date().getFullYear().toString());
             });
         });
         const result = tempLater`ciao ${john} come butta ${data}`;
-        
-        result.pipe(concat({encoding:'string'},function(data) {
-            data.should.be.equal('ciao jude come butta 2015');    
+
+        result.pipe(concat({encoding: 'string'}, dt => {
+            dt.should.be.equal('ciao jude come butta 2015');
             done();
         }));
-        
+
     });
 
 
@@ -65,26 +65,26 @@ describe('tempLater', () => {
 
         john._read = () => {
             if (jude.length) {
-                setTimeout( _ => {
+                setTimeout( () => {
                     let value = jude.shift();
                     john.push(value);
                     if (jude.length === 0) {
                         john.push(null);
                     }
-                },10);        
+                }, 10);
             }
-            
+
         };
-        
-        const data= new Date().getFullYear();
-           
+
+        const data = new Date().getFullYear();
+
         const result = tempLater`ciao ${john} come butta ${data}`;
-        
-        result.pipe(concat({encoding:'string'},function(data) {
-            data.should.be.equal('ciao jude come butta 2015');    
+
+        result.pipe(concat({encoding: 'string'}, dt => {
+            dt.should.be.equal('ciao jude come butta 2015');
             done();
         }));
-        
+
     });
 
 

@@ -1,124 +1,102 @@
 'use strict';
 
-import {Readable} from 'stream';
-
-class TempLaterResult extends Readable {
-    constructor(strings, substs) {
-        super();
-        this.strings = strings;
-        this.substs = substs;
-    }
-
-    sendChunk(chunk) {
-         
-        this.push(chunk);
-
-    }
-
-    sendResult (data) {
-        
-        if (data === undefined) {
-            data = '';
-        }
-
-        if (data === null) {
-            data = '';
-        }
-
-        if (typeof data === 'number' || data instanceof Date) {
-            
-            data = data.toLocaleString();
-            
-        }
-
-        if (typeof data === 'boolean' || data instanceof RegExp) {
-            data = data.toString();
-        }
-
-        this.sendChunk(data);
-        
-    }
-
-    _read () {
-        if (this.resolving) {
-            return;
-
-        } else {
-            
-            if (this.strings.length === 0 && this.substs.length === 0) {
-                this.sendChunk(null);
-                return;
-            }
-        }
-
-        const sendResult = this.sendResult.bind(this);
-        
-
-        // Retrieve the literal section preceding
-        // the current substitution
-        let lit = this.strings.shift();
-        sendResult(lit);
-
-        let subst = this.substs.shift();
-        
-        
-        if (subst && subst.then) {
-            this.resolving = true;
-            
-            subst
-                .then(sendResult)
-                .then(_ => this.resolving = false)
-                .then(_ => setImmediate(_ => this._read()));
-
-        } else if (subst instanceof Readable) {
-            this.resolving = true;
-
-            const forward = data => this.sendChunk(data || '');
-            
-            subst.on('data', forward);
-            subst.once('end', _ => {
-                this.resolving = false;
-                subst.removeListener('data',forward);
-                this._read();
-            });
-
-                
-                
-        } else {
-            sendResult(subst);
-            setImmediate(_ => this._read());
-        }        
-
-        
-    }
-
-    
-}
-
+import {PassThrough, Readable} from 'stream';
 import is from 'is';
-import fromArray from 'stream-from-array';
 import ss from 'stream-stream';
+import streamFromPromise from 'stream-from-promise';
 
 const stringer = value => value.toString();
+const identity = value => value;
 
-export const handlers = {
-    number: stringer,
-    date: stringer,
-    boolean: stringer,
-    regexp: stringer,
-};
+export const syncHandlers = new Map();
+export const asyncHandlers = new Map();
+
+export function addSyncHandler(when, handler) {
+    syncHandlers.set(when, handler);
+}
+
+export function addAsyncHandler(when, handler) {
+    asyncHandlers.set(when, handler);
+}
+
+export function isStream(value) {
+    return value instanceof Readable;
+}
+
+export function isPromise(value) {
+    return typeof value.then === 'function';
+}
+
+addSyncHandler(is.string, identity);
+addSyncHandler(is.number, stringer);
+addSyncHandler(is.date, stringer);
+addSyncHandler(is.boolean, stringer);
+addSyncHandler(is.regexp, stringer);
+
+addAsyncHandler(isStream, identity);
+addAsyncHandler(isPromise, streamFromPromise);
+
 
 export default function tempLater(strings, ...substs) {
     let results = ss();
-    let currentValues = [];
-    let handlerKeys = Object.keys();
+    let currentSyncValues = null;
 
     substs.forEach( (subst, idx) => {
+        if (currentSyncValues === null) {
+            currentSyncValues = new PassThrough();
+            currentSyncValues.on('error', err => results.emit('error', err));
+            results.write(currentSyncValues);
+        }
+
         let string = strings[idx];
+        currentSyncValues.write(string);
 
 
+        for (let [when, handler] of syncHandlers) {
+            if (when(subst)) {
+                //console.log(`found sync handler ${handler.name} for value ${subst}`);
+                subst = handler(subst);
+                //console.log(`sync handler return ${typeof subst}`);
+                break;
+            }
+        }
+
+        if (typeof subst === 'string') {
+            currentSyncValues.write(subst);
+
+        } else {
+
+            let stream = null;
+            for (let [when, handler] of asyncHandlers) {
+                if (when(subst)) {
+                    //console.log(`found async handler ${handler.name} for value ${subst}`);
+                    stream = handler(subst);
+                    //console.log(`async handler return ${typeof stream}`);
+                    break;
+                }
+            }
+            if (stream !== null) {
+                stream.on('error', err => results.emit('error', err));
+                results.write(stream);
+                currentSyncValues.end();
+                currentSyncValues = null;
+
+            } else {
+
+                throw new Error('Handler not available for value ' + subst);
+            }
+        }
 
     });
 
-    return new TempLaterResult(strings, substs);
+    if (currentSyncValues !== null) {
+        currentSyncValues.end();
+    }
+
+    results.on('error', (err) => console.log(err));
+
+    results.end();
+
+    return results;
+
 }
