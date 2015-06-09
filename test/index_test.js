@@ -38,6 +38,23 @@ describe('tempLater', () => {
 
     });
 
+     it('support non-string promise', (done) => {
+        const john = 'jude';
+        const data = new Promise(resolve => {
+            setTimeout( () => {
+                resolve(new Date().getFullYear());
+            });
+        });
+        const result = tempLater`ciao ${john} come butta ${data}`;
+
+        result.pipe(concat({encoding: 'string'}, dt => {
+            dt.should.be.equal('ciao jude come butta 2015');
+            done();
+        }));
+
+    });
+
+
     it('support multiple promises', (done) => {
         const john = new Promise( resolve => {
             setTimeout( () => {
@@ -87,6 +104,32 @@ describe('tempLater', () => {
 
     });
 
+    it('support non-string streams', (done) => {
+        const john = 'jude';
 
+        const data = new Readable({ objectMode: true });
+        const year = [2, 0, 1, 5];
+
+        data._read = () => {
+            if (year.length) {
+                setTimeout( () => {
+                    let value = year.shift();
+                    data.push(value);
+                    if (year.length === 0) {
+                        data.push(null);
+                    }
+                }, 10);
+            }
+
+        };
+
+        const result = tempLater`ciao ${john} come butta ${data}`;
+
+        result.pipe(concat({encoding: 'string'}, dt => {
+            dt.should.be.equal('ciao jude come butta 2015');
+            done();
+        }));
+
+    });
 
 });
