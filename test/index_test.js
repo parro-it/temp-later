@@ -58,19 +58,17 @@ describe('tempLater', () => {
         
     });
 
-/*
+
     it('support streams', (done) => {
         const john = new Readable();
         const jude = 'jude'.split('');
-        console.log(jude.join('-'));
+
         john._read = () => {
             if (jude.length) {
                 setTimeout( _ => {
                     let value = jude.shift();
-                    console.log('mando '+ value);
                     john.push(value);
                     if (jude.length === 0) {
-                        console.log('mando fine');
                         john.push(null);
                     }
                 },10);        
@@ -88,7 +86,7 @@ describe('tempLater', () => {
         }));
         
     });
-*/
+
 
 
 });

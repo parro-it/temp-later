@@ -35,9 +35,7 @@ class TempLaterResult extends Readable {
             data = data.toString();
         }
 
-        console.log('sending',data);
         this.sendChunk(data);
-        console.log('sent',data);
         
     }
 
