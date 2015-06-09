@@ -18,7 +18,7 @@ describe('tempLater', () => {
         result.pipe(concat({encoding:'string'},function(data) {
             data.should.be.equal('ciao jude come butta 2015');    
             done();
-        }))
+        }));
         
     });
 
@@ -34,7 +34,7 @@ describe('tempLater', () => {
         result.pipe(concat({encoding:'string'},function(data) {
             data.should.be.equal('ciao jude come butta 2015');    
             done();
-        }))
+        }));
         
     });
 
@@ -43,7 +43,7 @@ describe('tempLater', () => {
             setTimeout(_ => {
                 resolve('jude');
             });
-        });;
+        });
         const data= new Promise((resolve, reject) => {
             setTimeout(_ => {
                 resolve(new Date().getFullYear());
@@ -54,23 +54,29 @@ describe('tempLater', () => {
         result.pipe(concat({encoding:'string'},function(data) {
             data.should.be.equal('ciao jude come butta 2015');    
             done();
-        }))
+        }));
         
     });
 
-
+/*
     it('support streams', (done) => {
-        const john = new Readable;
+        const john = new Readable();
         const jude = 'jude'.split('');
         console.log(jude.join('-'));
         john._read = () => {
-            setTimeout( _ => {
-                let value = jude.shift();
-                console.log(jude.join('-'));
-                console.log('mando '+(value || null));
-                john.push(value || null);
-            },10);    
-        }
+            if (jude.length) {
+                setTimeout( _ => {
+                    let value = jude.shift();
+                    console.log('mando '+ value);
+                    john.push(value);
+                    if (jude.length === 0) {
+                        console.log('mando fine');
+                        john.push(null);
+                    }
+                },10);        
+            }
+            
+        };
         
         const data= new Date().getFullYear();
            
@@ -79,10 +85,10 @@ describe('tempLater', () => {
         result.pipe(concat({encoding:'string'},function(data) {
             data.should.be.equal('ciao jude come butta 2015');    
             done();
-        }))
+        }));
         
     });
-
+*/
 
 
 });

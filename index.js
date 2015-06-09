@@ -10,92 +10,85 @@ class TempLaterResult extends Readable {
     }
 
     sendChunk(chunk) {
-        if (this.closed) {
-            return;
-        }
-        if (chunk === null) {
-            this.closed = true;
-            console.log('fine stream');
-        } else {
-            console.dir('chunk:' + chunk);
-        }
-
+         
         this.push(chunk);
-
 
     }
 
-    _read () {
+    sendResult (data) {
         
-        const sendResult = (data) => {
-            if (data === undefined) {
-                data = '';
-            }
-
-            if (data === null) {
-                data = '';
-            }
-
-            if (typeof data === 'number' || data instanceof Date) {
-                data = data.toLocaleString();
-            }
-
-            if (typeof data === 'boolean' || data instanceof RegExp) {
-                data = data.toString();
-            }
-
-            this.sendChunk(lit);
-            this.sendChunk(data);
-            
-            setImmediate(_ => this._read());
-            
-            return data; 
+        if (data === undefined) {
+            data = '';
         }
 
+        if (data === null) {
+            data = '';
+        }
+
+        if (typeof data === 'number' || data instanceof Date) {
+            
+            data = data.toLocaleString();
+            
+        }
+
+        if (typeof data === 'boolean' || data instanceof RegExp) {
+            data = data.toString();
+        }
+
+        console.log('sending',data);
+        this.sendChunk(data);
+        console.log('sent',data);
+        
+    }
+
+    _read () {
         if (this.resolving) {
             return;
 
         } else {
             
-            if (this.strings.length === 0) {
-                console.log('chiudo')
+            if (this.strings.length === 0 && this.substs.length === 0) {
                 this.sendChunk(null);
+                return;
             }
         }
+
+        const sendResult = this.sendResult.bind(this);
+        
 
         // Retrieve the literal section preceding
         // the current substitution
         let lit = this.strings.shift();
-        let subst = this.substs.shift();
+        sendResult(lit);
 
+        let subst = this.substs.shift();
+        
+        
         if (subst && subst.then) {
             this.resolving = true;
+            
             subst
                 .then(sendResult)
-                .then(data => this.resolving = false);
+                .then(_ => this.resolving = false)
+                .then(_ => setImmediate(_ => this._read()));
 
         } else if (subst instanceof Readable) {
-            console.log('Readable')
             this.resolving = true;
 
-            this.sendChunk(lit);
-            const forward = data => this.sendChunk(data);
+            const forward = data => this.sendChunk(data || '');
             
             subst.on('data', forward);
             subst.once('end', _ => {
                 this.resolving = false;
-                console.log('end input')
                 subst.removeListener('data',forward);
                 this._read();
-            
-            
             });
 
                 
                 
         } else {
             sendResult(subst);
-            
+            setImmediate(_ => this._read());
         }        
 
         
