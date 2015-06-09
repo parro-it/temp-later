@@ -10,4 +10,4 @@ es6 asynchronous template strings
 
 ## License
 
-Copyright &copy; 2015 Inet2
+Copyright &copy; 2015 Andrea Parodi
